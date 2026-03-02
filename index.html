@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content='width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=yes'>
-    <title>Unity WebGL Player | My project (36)</title>
+    <title>Unity WebGL Player | My project (37)</title>
     <link rel="stylesheet" href="TemplateData/style.css">
+
     <style>
         html{
             height: -webkit-fill-available;
@@ -33,21 +34,9 @@
     </style>
 </head>
 <body>
-    <!--IMAGETARGETS-->
-		<imagetarget id='bear' src='targets/bear.png'></imagetarget>
-		<imagetarget id='bfly' src='targets/bfly.png'></imagetarget>
-		<imagetarget id='flower' src='targets/flower.png'></imagetarget>
-		<imagetarget id='lady' src='targets/lady.png'></imagetarget>
-		<imagetarget id='reel' src='targets/reel.png'></imagetarget>
-		<imagetarget id='rmn' src='targets/rmn.png'></imagetarget>
-		<imagetarget id='m-color-01' src='targets/m-color-01.png'></imagetarget>
-		<imagetarget id='images' src='targets/images.jpg'></imagetarget>
-		<imagetarget id='images' src='targets/images.jpg'></imagetarget>
-		<imagetarget id='main02' src='targets/main02.png'></imagetarget>
-		<imagetarget id='m-color-01' src='targets/m-color-01.png'></imagetarget>
 
     <video id="webcam-video" muted autoplay playsinline style="width:1px;position:absolute"></video>
-    <canvas id="video-canvas" style="width:100%; height:100%; object-fit:cover; position:absolute"></canvas>
+    <canvas id="video-canvas" style="width:100%; height:100%; object-fit:cover; position:absolute; z-index: -99; "></canvas>
     <div id="startARDiv" class="ctaDiv">
         <select id="chooseCamSel" style="display: none;" onchange="SelectCam()"></select>
         <p style="text-align: center; width:60vw;">This augmented reality experience requires access to your device's camera</p>
@@ -72,7 +61,7 @@
         <p id="errorText" style="text-align: center; width:60vw; color:white"></p>
     </div>
     <div id="unity-container" class="unity-mobile">
-        <canvas id="unity-canvas" style="width: 100%; height: 100%; background: #0000; z-index: -99"></canvas>
+        <canvas id="unity-canvas" style="width: 100%; height: 100%; background: #0000; z-index: -98"></canvas>
         <div id="unity-loading-bar">
             <div id="unity-logo"></div>
             <div id="unity-progress-bar-empty">
@@ -82,29 +71,44 @@
         <canvas id="video-canvas"></canvas>
     </div>
     <script src="arcamera.js" type="text/javascript"></script>
-    <script src="itracker.js" type="text/javascript"></script>
-    <script src="Build/李依柔01.loader.js"></script>
+    <script src="ftracker.js" type="text/javascript"></script>
+    <script src="Build/0003.loader.js"></script>
     <script>
             var initialize = async() =>{
                 var unityCanvas = document.querySelector("#unity-canvas");
                 var videoCanvas = document.querySelector("#video-canvas");
                 window.arCamera = new ARCamera(unityCanvas, videoCanvas);
-                window.iTracker = new ImageTracker(arCamera);
+                window.fTracker = new FaceTracker(arCamera);
                 try{
-                    await window.iTracker.initialize("./opencv.js");
-                    console.log("ImageTracker initialized!");
+					var numFaces = 4;
+                    // await window.fTracker.initialize(
+                    //     "./opencv.js",
+                    //     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3",
+                    //     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm",
+                    //     "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                    //     numFaces);
+
+                    await window.fTracker.initialize(
+                        "./opencv.js",
+                        "./mediapipe/tasks-vision@0.10.3.js",
+                        "./mediapipe/wasm",
+                        "./mediapipe/face_landmarker.task",
+                        numFaces);
+
+                    console.log("FaceTracker initialized!");
                 }
-                catch{
-                    console.error("Failed to initialize ImageTracker. Are you missing opencv.js? " + error);
+                catch (error){
+                    console.error("Failed to initialize FaceTracker. Are you missing opencv.js? " + error);
                     ShowError("Failed to initialize the experience.");
                     return;
                 }
                 
                 await LoadWebcams();
                 document.getElementById("startARButton").style.display = "block";
-                window.permissionsGranted = IsCameraPermissionGranted();
             }
+
             initialize();
+
             var container = document.querySelector("#unity-container");
             var canvas = document.querySelector("#unity-canvas");
             var loadingBar = document.querySelector("#unity-loading-bar");
@@ -115,12 +119,12 @@
                 
                 document.getElementById("startARDiv").style.display = "none";
                 createUnityInstance(document.querySelector("#unity-canvas"), {
-                    dataUrl: "Build/李依柔01.data",
-                    frameworkUrl: "Build/李依柔01.framework.js",
-                    codeUrl: "Build/李依柔01.wasm",
+                    dataUrl: "Build/0003.data",
+                    frameworkUrl: "Build/0003.framework.js",
+                    codeUrl: "Build/0003.wasm",
                     streamingAssetsUrl: "StreamingAssets",
                     companyName: "DefaultCompany",
-                    productName: "My project (36)",
+                    productName: "My project (37)",
                     productVersion: "0.1",
                     //webglContextAttributes: { "preserveDrawingBuffer": true },
                     // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
@@ -131,29 +135,31 @@
                     }
                 ).then((unityInstance) => {
                     window.unityInstance = unityInstance;
-                    if(window.permissionsGranted)
-                        RequestWebcam();
+                    RequestWebcam();
+
                     loadingBar.style.display = "none";
                 });
                 loadingBar.style.display = "block";
             }
             //Set Facing Mode here ('environment', 'user', '')
-		window.unityFacingMode = "environment"
+		window.unityFacingMode = "user"
+
             window.WEBCAM_SETTINGS = {
                 video: {
                     facingMode: unityFacingMode,
                 },
                 audio: false
             };
+
             window.requestingForPermissions = false;
             async function RequestWebcam(){
                 window.requestingForPermissions = true;
                 try{
                     window.webcamStream = await navigator.mediaDevices.getUserMedia(window.WEBCAM_SETTINGS);
+                    arCamera.setFlipped(window.WEBCAM_SETTINGS.video.facingMode == 'user');
+
                     console.log("Webcam access granted");
                     requestingForPermissions = false;
-                    // Immediately stop the stream to release the camera
-                    StopWebcam();
                 }
                 catch (err) {
                     //user denied camera permission - show error panel
@@ -162,19 +168,18 @@
                     window.requestingForPermissions = false;
                 }           
             }
-            function StopWebcam(){
-                console.log("stopping camera");
-                window.webcamStream.getTracks().forEach(track => track.stop());    
-            }
+
             async function StartWebcam(){
                 console.log("StartWebcam")
-                window.webcamStream = await navigator.mediaDevices.getUserMedia(window.WEBCAM_SETTINGS);
+
                 while (window.requestingForPermissions) {
                     // Wait until requestingForPermissions becomes true.
                     console.log("Waiting for permissions...");
                     await new Promise(resolve => setTimeout(resolve, 100)); // Adjust the delay time as needed.
                 }
+
                 console.log("Got Permissions");
+
                 if(window.webcamStream)
                 {
                     const video = document.querySelector("#webcam-video");
@@ -182,7 +187,11 @@
                     try {
                         await arCamera.startWebcam(video);
                         console.log("Webcam started successfully");
+
                         window.unityInstance.SendMessage('ARCamera', 'OnStartWebcamSuccess');
+
+                        arCamera.setFlipped(window.WEBCAM_SETTINGS.video.facingMode == 'user');
+
                     }
                     catch(err){
                         console.error("Webcam failed to start - ", err);
@@ -201,6 +210,7 @@
                 var ctr = 0;
                 devices.forEach(mediaDevice => {
                     if (mediaDevice.kind === 'videoinput') {
+
                         if(window.unityFacingMode == 'environment' && !mediaDevice.label.includes('facing front')){
                             //back cam only
                             camDevices.push(mediaDevice);
@@ -220,9 +230,6 @@
                 var select = document.getElementById("chooseCamSel");
                 select.style.display = "block";
                 var count = 0;
-                //reverse array because some Android phones can't distinguish front and back cams at first load
-                //and when this happens, most of the time, front cam goes first and back cam goes last
-                camDevices = camDevices.reverse();
                 camDevices.forEach(mediaDevice => {
                     const option = document.createElement('option');
                     option.value = mediaDevice.deviceId;
@@ -235,18 +242,20 @@
                     select.appendChild(option);
                     count++;
                 });
-                iTracker.WEBCAM_NAME = select.options[select.selectedIndex].innerHTML;
+                // iTracker.WEBCAM_NAME = select.options[select.selectedIndex].innerHTML;
             }
             function SelectCam(){
                 var select = document.getElementById("chooseCamSel");
-                window.deviceId = select.value;
+                const deviceId = select.value;
                 window.WEBCAM_SETTINGS.video['deviceId'] = deviceId;
                 //console.log(window.WEBCAM_SETTINGS);
-                iTracker.WEBCAM_NAME = select.options[select.selectedIndex].innerHTML;
+                // iTracker.WEBCAM_NAME = select.options[select.selectedIndex].innerHTML;
             }
+
             async function FlipCam(){
                 arCamera.stopWebcam();
                 window.WEBCAM_SETTINGS.video.deviceId = '';
+
                 if(window.WEBCAM_SETTINGS.video.facingMode == 'user'){
                     window.WEBCAM_SETTINGS.video.facingMode = 'environment';
                     arCamera.setFlipped(false);
@@ -256,53 +265,36 @@
                     arCamera.setFlipped(true);
                 }
                 window.webcamStream = await navigator.mediaDevices.getUserMedia(window.WEBCAM_SETTINGS);
+
                 const video = document.querySelector("#webcam-video");
                 video.srcObject = webcamStream;
+
                 await arCamera.startWebcam(video);
             }
-            async function IsCameraPermissionGranted() {
-                if (!navigator.permissions || !navigator.mediaDevices) {
-                    console.log("Permissions API or mediaDevices not supported.");
-                    return false;
-                }
-                try {
-                    // Query the status of the camera permission
-                    const permissionStatus = await navigator.permissions.query({ name: "camera" });
-                    if (permissionStatus.state === "granted") {
-                    console.log("Camera permission has already been granted.");
-                    return true;
-                    } else if (permissionStatus.state === "prompt") {
-                    console.log("Camera permission is promptable.");
-                    return false;
-                    } else {
-                    console.log("Camera permission has been denied.");
-                    return false;
-                    }
-                } catch (error) {
-                    console.log("Error checking camera permission:", error);
-                    return false;
-                }
-            }
+
             function ShowError(error){
                 document.getElementById("errorDiv").style.display = "flex";
                 document.getElementById("errorText").innerHTML = error;
             }
+
             function ShowScreenshot(dataUrl){
                 document.getElementById("screenshotDiv").style.display = "flex";
                 document.getElementById("screenshotImg").src = dataUrl;
                 document.getElementById("screenshotImg").style.width = "80vw";
                 document.getElementById("screenshotImg").style.height = 80 / window.innerWidth * window.innerHeight + "vw";
             }
+
             function ShowConfirmUrl(url){
                 document.getElementById("confirmUrlDiv").style.display = "flex";
                 window.newUrlString = url;
                 document.getElementById("confirmUrlText").innerText = "Are you sure you want to visit " + url;                
             }
-            window.ITRACKER_GLOBALS = {
+
+            window.FTRACKER_GLOBALS = {
                 //place global settings here
-                INTERNAL_SMOOTHFACTOR_POS: .075,
             }
             
+
     </script>
 </body>
 </html>
